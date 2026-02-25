@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusLock | Strict Pomodoro & Task Manager</title>
+    
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #f5f5f5;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        
+        /* Checkbox custom styles */
+        .task-checkbox:checked + div {
+            text-decoration: line-through;
+            color: #71717a; /* neutral-500 */
+        }
+    </style>
+</head>
+<body class="min-h-screen selection:bg-indigo-500/30 flex flex-col overflow-x-hidden">
+
+    <!-- HEADER -->
+    <header class="p-4 md:p-6 flex justify-between items-center border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2 rounded-lg shadow-lg shadow-indigo-500/20">
+                <!-- Clock Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight leading-none">FocusLock</h1>
+                <span class="text-xs text-neutral-400 font-medium">Strict Pomodoro</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2 md:gap-4">
+            <!-- Header Actions (Visible in IDLE) -->
+            <div id="header-actions" class="flex items-center gap-2">
+                <button id="btn-stats" class="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors" title="View Statistics">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 15v-6"/><path d="M11 15v-4"/><path d="M15 15v-8"/></svg>
+                </button>
+                <button id="btn-settings" class="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors" title="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+
+            <!-- Emergency Stop (Visible in WORK/BREAK) -->
+            <button id="btn-stop" class="hidden items-center gap-2 px-3 py-2 bg-red-500/10 text-sm font-medium text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-colors border border-red-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+                <span class="hidden sm:inline">Emergency Stop</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-[1600px] mx-auto p-4 md:p-6 flex-1 flex flex-col justify-center w-full">
+        
+        <!-- === IDLE STATE (SETUP SCREEN) === -->
+        <div id="screen-idle" class="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-start animate-fade-in max-w-5xl mx-auto">
+            
+            <!-- Left Column: Setup -->
+            <div class="space-y-8 max-w-md w-full">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-bold">Configure Session</h2>
+                    <p class="text-neutral-400">Set your playlist and prepare your environment.</p>
+                </div>
+
+                <div class="space-y-5">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-neutral-300 flex items-center justify-between">
+                            <span>YouTube Playlist URL</span>
+                            <span class="text-xs text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded">Required</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="input-url"
+                            placeholder="https://youtube.com/playlist?list=..."
+                            class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner"
+                        />
+                        <p class="text-xs text-neutral-500">Also accepts single video URLs for testing.</p>
+                    </div>
+
+                    <div class="bg-neutral-800/30 rounded-xl p-5 border border-neutral-800">
+                        <h3 class="text-sm font-medium mb-3 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                            Strict Rules Applied
+                        </h3>
+                        <ul class="text-xs text-neutral-400 space-y-2 pl-6 list-disc">
+                            <li><span id="label-work-time">50</span> minutes deep work, <span id="label-break-time">15</span> minutes break.</li>
+                            <li>Video plays automatically with custom UI controls.</li>
+                            <li>Native iframe keyboard controls and mouse clicks intercepted.</li>
+                            <li>Closing the tab loses session progress.</li>
+                        </ul>
+                    </div>
+
+                    <button 
+                        id="btn-start"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl px-4 py-4 flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] active:scale-[0.98]"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                        Begin Focus Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Task Manager -->
+            <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6 shadow-xl w-full flex flex-col h-[500px]">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                        Session Tasks
+                    </h3>
+                    <span id="task-counter" class="text-xs bg-neutral-800 px-2 py-1 rounded text-neutral-400">0/0</span>
+                </div>
+                
+                <form id="form-add-task" class="flex gap-2 mb-4">
+                    <input type="text" id="input-task" placeholder="What are you working on?" class="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500 transition-colors">
+                    <button type="submit" class="bg-neutral-700 hover:bg-neutral-600 text-white px-3 py-2 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                    </button>
+                </form>
+
+                <div class="flex-1 overflow-y-auto pr-2" id="task-list">
+                    <!-- Tasks injected via JS -->
+                    <div class="flex flex-col items-center justify-center h-full text-neutral-500 space-y-2 opacity-70">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                        <p class="text-sm">No tasks added yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === ACTIVE WORK / BREAK STATE === -->
+        <div id="screen-active" class="hidden w-full h-full flex-col lg:flex-row gap-6 items-stretch animate-fade-in">
+            
+            <!-- Left Side: BIG Video Container (75% Width on Desktop) -->
+            <div class="w-full lg:w-3/4 flex flex-col">
+                <div id="video-container" class="relative w-full h-full min-h-[40vh] lg:min-h-[70vh] bg-black rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-neutral-800 transition-all duration-700 group flex-1">
+                    
+                    <!-- YouTube IFrame Wrapper -->
+                    <div id="player-wrapper" class="absolute inset-0 w-full h-full pointer-events-none">
+                        <div id="youtube-player"></div>
+                    </div>
+                    
+                    <!-- ANTI-CHEAT OVERLAY -->
+                    <div 
+                        class="absolute inset-0 z-40 bg-transparent cursor-not-allowed"
+                        title="Strict Mode Active. Native controls disabled."
+                        oncontextmenu="event.preventDefault(); showToast('Context menu disabled in Strict Mode.', 'warning');"
+                        onclick="showToast('Use the Media Controls panel on the right.', 'info');"
+                    ></div>
+
+                    <!-- BREAK OVERLAY -->
+                    <div id="break-overlay" class="hidden absolute inset-0 z-50 bg-neutral-900/95 backdrop-blur-md flex-col items-center justify-center transition-opacity duration-500">
+                        <div class="relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400 mb-6 drop-shadow-[0_0_15px_rgba(79,70,229,0.5)]"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>
+                        </div>
+                        <p class="text-3xl font-bold text-white tracking-tight">Time to Relax</p>
+                        <p class="text-neutral-400 mt-2 text-center max-w-xs">Step away from your screen. Stretch your legs. Drink some water.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Dashboard (25% Width on Desktop) -->
+            <div class="w-full lg:w-1/4 flex flex-col gap-4 lg:max-h-[85vh] overflow-y-auto custom-scrollbar pr-1 pb-10">
+                
+                <!-- Status & Timer Dashboard -->
+                <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-5 shadow-xl flex flex-col items-center justify-center relative overflow-hidden shrink-0">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                    
+                    <div id="status-badge" class="flex items-center gap-2 text-sm font-medium px-4 py-1 bg-neutral-800/80 backdrop-blur rounded-full border border-neutral-700 shadow-lg mb-4 relative z-10">
+                        <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                        <span id="status-text" class="tracking-wide uppercase text-xs">Deep Work Session</span>
+                    </div>
+
+                    <div id="timer-display" class="text-6xl font-black tracking-tighter tabular-nums text-white drop-shadow-2xl transition-colors duration-500 leading-none relative z-10">
+                        50:00
+                    </div>
+                </div>
+
+                <!-- Media Controls -->
+                <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3 shrink-0">
+                    <label class="text-xs font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01"/><path d="M18 12h.01"/></svg>
+                        Media Controls
+                    </label>
+                    <div class="flex items-center justify-center gap-4 py-1">
+                        <button id="btn-rewind" class="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-full text-white transition-colors" title="Rewind 5 seconds">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/></svg>
+                        </button>
+                        <button id="btn-play-pause" class="p-4 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white transition-colors shadow-lg shadow-indigo-500/20" title="Play / Pause">
+                            <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                            <svg id="icon-play" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </button>
+                        <button id="btn-forward" class="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-full text-white transition-colors" title="Forward 5 seconds">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Speed & Quality Settings Grid -->
+                <div class="grid grid-cols-2 gap-3 shrink-0">
+                    <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-3 shadow-xl flex flex-col gap-2">
+                        <label class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1">Speed</label>
+                        <select id="select-speed" class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-2 py-1.5 text-white text-xs focus:outline-none focus:border-indigo-500" onchange="changePlaybackSpeed(this.value)">
+                            <option value="1" selected>Normal</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="1.75">1.75x</option>
+                            <option value="2">2.0x</option>
+                        </select>
+                    </div>
+                    <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-3 shadow-xl flex flex-col gap-2">
+                        <label class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1" title="Note: YouTube may override quality based on bandwidth.">Quality</label>
+                        <select id="select-quality" class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-2 py-1.5 text-white text-xs focus:outline-none focus:border-indigo-500" onchange="changeVideoQuality(this.value)">
+                            <option value="default">Auto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Playlist Viewer -->
+                <div id="playlist-section" class="hidden bg-neutral-900/50 border border-neutral-800 rounded-2xl p-4 shadow-xl flex-col max-h-48 shrink-0">
+                    <h3 class="text-sm font-semibold mb-3 text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M21 15V6"/><path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M12 12H3"/><path d="M16 6H3"/><path d="M12 18H3"/></svg>
+                        Playlist Queue
+                    </h3>
+                    <div class="flex-1 overflow-y-auto pr-1 space-y-1 custom-scrollbar" id="playlist-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Active Task Tracker -->
+                <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-4 shadow-xl flex-1 flex flex-col min-h-[200px]">
+                    <h3 class="text-sm font-semibold mb-3 text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        Objectives
+                    </h3>
+                    <div class="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar" id="active-task-list">
+                        <!-- Cloned task list injected here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- === MODALS === -->
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div id="modal-settings-content" class="bg-neutral-900 border border-neutral-700 w-full max-w-md rounded-2xl p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Settings</h3>
+                <button onclick="closeModal('modal-settings')" class="text-neutral-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-300 mb-2">Pomodoro Preset</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="applyPreset(25, 5)" class="preset-btn py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm transition-colors">25 / 5</button>
+                        <button onclick="applyPreset(50, 15)" class="preset-btn py-2 bg-indigo-600 border border-indigo-500 rounded-lg text-sm transition-colors font-medium text-white shadow-lg shadow-indigo-500/20">50 / 15</button>
+                        <button onclick="applyPreset(90, 20)" class="preset-btn py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm transition-colors">90 / 20</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-300 mb-1">Work (min)</label>
+                        <input type="number" id="input-work-min" value="50" min="1" max="120" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-300 mb-1">Break (min)</label>
+                        <input type="number" id="input-break-min" value="15" min="1" max="60" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-neutral-800 flex justify-end">
+                    <button onclick="saveSettings()" class="bg-white text-black hover:bg-neutral-200 font-semibold px-4 py-2 rounded-lg transition-colors">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="modal-stats" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div id="modal-stats-content" class="bg-neutral-900 border border-neutral-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    Your Analytics
+                </h3>
+                <button onclick="closeModal('modal-stats')" class="text-neutral-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-neutral-800 rounded-xl p-4 border border-neutral-700/50 flex flex-col justify-center items-center text-center">
+                    <span class="text-3xl font-black text-white" id="stat-total-sessions">0</span>
+                    <span class="text-xs text-neutral-400 font-medium uppercase tracking-wider mt-1">Sessions Completed</span>
+                </div>
+                <div class="bg-neutral-800 rounded-xl p-4 border border-neutral-700/50 flex flex-col justify-center items-center text-center">
+                    <span class="text-3xl font-black text-indigo-400" id="stat-total-hours">0.0</span>
+                    <span class="text-xs text-neutral-400 font-medium uppercase tracking-wider mt-1">Hours Focused</span>
+                </div>
+            </div>
+
+            <h4 class="text-sm font-semibold text-neutral-300 mb-3 border-b border-neutral-800 pb-2">Recent Session History</h4>
+            <div class="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar" id="stats-history-list">
+                <!-- History injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- CONFIGURATION & STATE ---
+        let settings = {
+            workDuration: 50 * 60, // Default 50 mins (seconds)
+            breakDuration: 15 * 60 // Default 15 mins (seconds)
+        };
+        
+        let appState = 'IDLE'; // States: IDLE, WORK, BREAK
+        let timeLeft = settings.workDuration;
+        let playlistId = null;
+        let timerInterval = null;
+        let player = null;
+        let isYouTubeApiReady = false;
+        
+        let currentPlaybackRate = 1; 
+        let currentQuality = 'default';
+        let tasks = []; // Array of { id, text, completed }
+        let playlistArray = [];
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            screenIdle: document.getElementById('screen-idle'),
+            screenActive: document.getElementById('screen-active'),
+            headerActions: document.getElementById('header-actions'),
+            btnStart: document.getElementById('btn-start'),
+            btnStop: document.getElementById('btn-stop'),
+            btnSettings: document.getElementById('btn-settings'),
+            btnStats: document.getElementById('btn-stats'),
+            inputUrl: document.getElementById('input-url'),
+            timerDisplay: document.getElementById('timer-display'),
+            statusDot: document.getElementById('status-dot'),
+            statusText: document.getElementById('status-text'),
+            videoContainer: document.getElementById('video-container'),
+            breakOverlay: document.getElementById('break-overlay'),
+            playerWrapper: document.getElementById('player-wrapper'),
+            formAddTask: document.getElementById('form-add-task'),
+            inputTask: document.getElementById('input-task'),
+            taskList: document.getElementById('task-list'),
+            activeTaskList: document.getElementById('active-task-list'),
+            taskCounter: document.getElementById('task-counter'),
+            toastContainer: document.getElementById('toast-container'),
+            labelWorkTime: document.getElementById('label-work-time'),
+            labelBreakTime: document.getElementById('label-break-time'),
+            selectSpeed: document.getElementById('select-speed'),
+            selectQuality: document.getElementById('select-quality'),
+            playlistSection: document.getElementById('playlist-section'),
+            playlistContainer: document.getElementById('playlist-container'),
+            btnRewind: document.getElementById('btn-rewind'),
+            btnForward: document.getElementById('btn-forward'),
+            btnPlayPause: document.getElementById('btn-play-pause'),
+            iconPlay: document.getElementById('icon-play'),
+            iconPause: document.getElementById('icon-pause'),
+        };
+
+        // --- INIT YOUTUBE API ---
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        window.onYouTubeIframeAPIReady = () => { isYouTubeApiReady = true; };
+
+        // --- TOAST NOTIFICATION SYSTEM ---
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            let bgClass = 'bg-neutral-800 border-neutral-700';
+            let icon = '';
+
+            if (type === 'error' || type === 'warning') {
+                bgClass = 'bg-red-950/90 border-red-900/50 text-red-100';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-400"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
+            } else if (type === 'success') {
+                bgClass = 'bg-green-950/90 border-green-900/50 text-green-100';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>`;
+            } else {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`;
+            }
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl pointer-events-auto animate-slide-up backdrop-blur-md ${bgClass}`;
+            toast.innerHTML = `${icon} <span class="text-sm font-medium">${message}</span>`;
+            
+            els.toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- TASK MANAGEMENT ---
+        function generateId() { return Math.random().toString(36).substr(2, 9); }
+
+        function renderTasks() {
+            const completedCount = tasks.filter(t => t.completed).length;
+            els.taskCounter.textContent = `${completedCount}/${tasks.length}`;
+            
+            if (tasks.length === 0) {
+                const emptyHTML = `
+                    <div class="flex flex-col items-center justify-center h-24 text-neutral-600 space-y-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                        <p class="text-xs">No tasks added.</p>
+                    </div>`;
+                els.taskList.innerHTML = emptyHTML;
+                els.activeTaskList.innerHTML = emptyHTML;
+                return;
+            }
+
+            const createHTML = (isInteractive) => tasks.map(t => `
+                <div class="flex items-start gap-3 p-2.5 bg-neutral-800/50 rounded-lg border border-neutral-700/50 group transition-colors hover:bg-neutral-800">
+                    <input type="checkbox" 
+                        ${t.completed ? 'checked' : ''} 
+                        onchange="toggleTask('${t.id}')"
+                        class="task-checkbox mt-1 cursor-pointer w-4 h-4 accent-indigo-500 bg-neutral-700 border-neutral-600 rounded">
+                    <div class="flex-1 text-sm ${t.completed ? 'text-neutral-500 line-through' : 'text-neutral-200'} transition-all">${t.text}</div>
+                    ${isInteractive ? `
+                    <button onclick="deleteTask('${t.id}')" class="text-neutral-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            els.taskList.innerHTML = createHTML(true);
+            els.activeTaskList.innerHTML = createHTML(false);
+        }
+
+        els.formAddTask.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = els.inputTask.value.trim();
+            if (text) {
+                tasks.push({ id: generateId(), text, completed: false });
+                els.inputTask.value = '';
+                renderTasks();
+            }
+        });
+
+        window.toggleTask = (id) => {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+            }
+        };
+
+        window.deleteTask = (id) => {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        };
+
+        // --- MEDIA & PLAYLIST LOGIC ---
+        window.changePlaybackSpeed = (rate) => {
+            currentPlaybackRate = Number(rate);
+            if (player && player.setPlaybackRate) {
+                player.setPlaybackRate(currentPlaybackRate);
+                showToast(`Playback speed set to ${rate}x`, 'info');
+            }
+        };
+
+        const qualityMap = {
+            'highres': 'High Res', 'hd2160': '4K (2160p)', 'hd1440': '1440p',
+            'hd1080': '1080p', 'hd720': '720p', 'large': '480p',
+            'medium': '360p', 'small': '240p', 'tiny': '144p', 'auto': 'Auto'
+        };
+
+        window.changeVideoQuality = (level) => {
+            currentQuality = level;
+            if (player && player.setPlaybackQuality) {
+                player.setPlaybackQuality(level);
+                showToast(`Quality requested: ${qualityMap[level] || level}`, 'info');
+            }
+        };
+
+        function updateQualityOptions() {
+            if (!player || !player.getAvailableQualityLevels) return;
+            const levels = player.getAvailableQualityLevels();
+            
+            if (levels && levels.length > 0) {
+                // Ensure 'auto' or 'default' is an option
+                if(!levels.includes('default') && !levels.includes('auto')) levels.unshift('auto');
+
+                els.selectQuality.innerHTML = levels.map(l => 
+                    `<option value="${l}" ${l === currentQuality ? 'selected' : ''}>${qualityMap[l] || l}</option>`
+                ).join('');
+            }
+        }
+
+        function updatePlaylistUI() {
+            if (!player || !player.getPlaylist) return;
+            playlistArray = player.getPlaylist() || [];
+            
+            if (playlistArray.length > 1) {
+                els.playlistSection.style.display = 'flex';
+                const currentIndex = player.getPlaylistIndex();
+                
+                // Get real title for the active video
+                const currentData = player.getVideoData ? player.getVideoData() : null;
+                const activeTitle = currentData && currentData.title ? currentData.title : `Video ${currentIndex + 1}`;
+
+                els.playlistContainer.innerHTML = playlistArray.map((vid, idx) => {
+                    const isActive = idx === currentIndex;
+                    const displayTitle = isActive ? activeTitle : `Video ${idx + 1}`;
+                    
+                    return `
+                        <button onclick="playPlaylistItem(${idx})" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition-colors flex items-center gap-2 group ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'}">
+                            ${isActive 
+                                ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><polygon points="5 3 19 12 5 21 5 3"/></svg>' 
+                                : `<span class="text-neutral-600 group-hover:text-neutral-400 w-3 shrink-0 text-right">${idx+1}.</span>`}
+                            <span class="truncate flex-1 font-medium">${displayTitle}</span>
+                        </button>
+                    `;
+                }).join('');
+                
+                // Auto-scroll to active item
+                const activeEl = els.playlistContainer.children[currentIndex];
+                if (activeEl) {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+
+            } else {
+                els.playlistSection.style.display = 'none';
+            }
+        }
+
+        window.playPlaylistItem = (idx) => {
+            if (player && player.playVideoAt) {
+                player.playVideoAt(idx);
+            }
+        };
+
+        els.btnRewind.addEventListener('click', () => {
+            if (appState === 'BREAK') return showToast("Video is paused during break time.", "warning");
+            if (player && player.getCurrentTime) {
+                const currentTime = player.getCurrentTime();
+                player.seekTo(Math.max(0, currentTime - 5), true);
+            }
+        });
+
+        els.btnForward.addEventListener('click', () => {
+            if (appState === 'BREAK') return showToast("Video is paused during break time.", "warning");
+            if (player && player.getCurrentTime && player.getDuration) {
+                const currentTime = player.getCurrentTime();
+                const duration = player.getDuration();
+                player.seekTo(Math.min(duration, currentTime + 5), true);
+            }
+        });
+
+        els.btnPlayPause.addEventListener('click', () => {
+            if (appState === 'BREAK') return showToast("Video is paused during break time.", "warning");
+            if (player && player.getPlayerState) {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                } else {
+                    player.playVideo();
+                }
+            }
+        });
+
+        // --- MODAL LOGIC & SETTINGS ---
+        window.openModal = (id) => {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(`${id}-content`);
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+
+            if (id === 'modal-stats') updateStatsUI();
+        };
+
+        window.closeModal = (id) => {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(`${id}-content`);
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.style.display = 'none'; }, 300); 
+        };
+
+        els.btnSettings.addEventListener('click', () => openModal('modal-settings'));
+        els.btnStats.addEventListener('click', () => openModal('modal-stats'));
+
+        window.applyPreset = (workMin, breakMin) => {
+            document.getElementById('input-work-min').value = workMin;
+            document.getElementById('input-break-min').value = breakMin;
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.className = "preset-btn py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm transition-colors";
+            });
+            event.target.className = "preset-btn py-2 bg-indigo-600 border border-indigo-500 rounded-lg text-sm transition-colors font-medium text-white shadow-lg shadow-indigo-500/20";
+        };
+
+        window.saveSettings = () => {
+            const w = parseInt(document.getElementById('input-work-min').value);
+            const b = parseInt(document.getElementById('input-break-min').value);
+            
+            if (w < 1 || b < 1) return showToast("Durations must be at least 1 minute.", "error");
+
+            settings.workDuration = w * 60;
+            settings.breakDuration = b * 60;
+            
+            els.labelWorkTime.textContent = w;
+            els.labelBreakTime.textContent = b;
+
+            if (appState === 'IDLE') timeLeft = settings.workDuration;
+
+            closeModal('modal-settings');
+            showToast("Settings saved successfully.", "success");
+        };
+
+        // --- DATABASE & STATISTICS (LocalStorage) ---
+        function saveSessionToDatabase() {
+            const session = {
+                id: 'sess_' + generateId(),
+                playlistId: playlistId,
+                workDuration: settings.workDuration,
+                completedAt: new Date().toISOString(),
+                tasksCompleted: tasks.filter(t => t.completed).length
+            };
+            
+            let history = JSON.parse(localStorage.getItem('focuslock_sessions') || '[]');
+            history.push(session);
+            localStorage.setItem('focuslock_sessions', JSON.stringify(history));
+        }
+
+        function updateStatsUI() {
+            const history = JSON.parse(localStorage.getItem('focuslock_sessions') || '[]');
+            document.getElementById('stat-total-sessions').textContent = history.length;
+            
+            const totalSeconds = history.reduce((acc, curr) => acc + curr.workDuration, 0);
+            document.getElementById('stat-total-hours').textContent = (totalSeconds / 3600).toFixed(1);
+
+            const historyList = document.getElementById('stats-history-list');
+            if (history.length === 0) {
+                historyList.innerHTML = `<p class="text-sm text-neutral-500 text-center py-4">No sessions recorded yet. Start working!</p>`;
+                return;
+            }
+
+            const recent = [...history].reverse().slice(0, 10);
+            historyList.innerHTML = recent.map(session => {
+                const date = new Date(session.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const mins = Math.floor(session.workDuration / 60);
+                return `
+                    <div class="flex items-center justify-between p-3 bg-neutral-800/50 rounded-lg border border-neutral-700/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-white">${mins} Minute Focus</p>
+                                <p class="text-xs text-neutral-500">${date}</p>
+                            </div>
+                        </div>
+                        <div class="text-xs font-medium text-neutral-400 bg-neutral-800 px-2 py-1 rounded">
+                            ${session.tasksCompleted} tasks done
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- POMODORO CORE LOGIC ---
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function extractPlaylistId(url) {
+            const match = url.match(/[?&]list=([^&]+)/);
+            if (match && match[1]) return match[1];
+            const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&]{11})/);
+            if (videoMatch && videoMatch[1]) return `VIDEO:${videoMatch[1]}`;
+            return null;
+        }
+
+        function updateUIForState() {
+            if (appState === 'IDLE') {
+                els.screenIdle.style.display = 'grid';
+                els.screenActive.style.display = 'none';
+                els.btnStop.style.display = 'none';
+                els.headerActions.style.display = 'flex';
+                document.title = "FocusLock | Strict Pomodoro";
+            } else {
+                els.screenIdle.style.display = 'none';
+                els.screenActive.style.display = 'flex';
+                els.btnStop.style.display = 'flex';
+                els.headerActions.style.display = 'none'; 
+
+                if (appState === 'WORK') {
+                    els.timerDisplay.classList.replace('text-indigo-400', 'text-white');
+                    els.statusDot.style.display = 'block';
+                    els.statusText.textContent = 'Deep Work Session';
+                    els.videoContainer.classList.remove('border-indigo-500/50', 'ring-4', 'ring-indigo-500/20');
+                    els.videoContainer.classList.add('border-neutral-800');
+                    els.breakOverlay.style.display = 'none';
+                } else if (appState === 'BREAK') {
+                    els.timerDisplay.classList.replace('text-white', 'text-indigo-400');
+                    els.statusDot.style.display = 'none';
+                    els.statusText.textContent = 'Break Time - Relax';
+                    els.videoContainer.classList.remove('border-neutral-800');
+                    els.videoContainer.classList.add('border-indigo-500/50', 'ring-4', 'ring-indigo-500/20');
+                    els.breakOverlay.style.display = 'flex';
+                }
+            }
+        }
+
+        function handlePhaseComplete() {
+            if (appState === 'WORK') {
+                appState = 'BREAK';
+                timeLeft = settings.breakDuration;
+                
+                if (player && player.pauseVideo) player.pauseVideo();
+                saveSessionToDatabase();
+                showToast("Work session complete! Time for a break.", "success");
+                
+            } else if (appState === 'BREAK') {
+                appState = 'WORK';
+                timeLeft = settings.workDuration;
+                
+                if (player && player.playVideo) player.playVideo();
+                showToast("Break is over. Back to work!", "info");
+            }
+            
+            els.timerDisplay.textContent = formatTime(timeLeft);
+            updateUIForState();
+        }
+
+        function tickTimer() {
+            timeLeft--;
+            const formatted = formatTime(timeLeft);
+            els.timerDisplay.textContent = formatted;
+            
+            const prefix = appState === 'WORK' ? '🔴' : '☕';
+            document.title = `${prefix} ${formatted} | FocusLock`;
+            
+            if (timeLeft <= 0) handlePhaseComplete();
+        }
+
+        function initYouTubePlayer() {
+            if (!isYouTubeApiReady) {
+                setTimeout(initYouTubePlayer, 500); 
+                return;
+            }
+
+            const isSingleVideo = playlistId.startsWith('VIDEO:');
+            const loadParam = isSingleVideo 
+                ? { videoId: playlistId.replace('VIDEO:', '') } 
+                : { playerVars: { listType: 'playlist', list: playlistId } };
+
+            player = new YT.Player('youtube-player', {
+                height: '100%',
+                width: '100%',
+                ...loadParam,
+                playerVars: {
+                    ...loadParam.playerVars,
+                    autoplay: 1,
+                    controls: 0,        
+                    disablekb: 1,       
+                    fs: 0,              
+                    modestbranding: 1,
+                    rel: 0,
+                    iv_load_policy: 3
+                },
+                events: {
+                    onReady: (event) => {
+                        event.target.setPlaybackRate(currentPlaybackRate);
+                        if (currentQuality !== 'default') event.target.setPlaybackQuality(currentQuality);
+                        event.target.playVideo();
+                        
+                        setTimeout(() => {
+                            updatePlaylistUI();
+                            updateQualityOptions();
+                        }, 1000);
+                    },
+                    onStateChange: (event) => {
+                        // Maintain speed and quality settings
+                        if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.CUED) {
+                            event.target.setPlaybackRate(currentPlaybackRate);
+                            if (currentQuality !== 'default') event.target.setPlaybackQuality(currentQuality);
+                            
+                            updatePlaylistUI();
+                            updateQualityOptions();
+                        }
+
+                        // Toggle UI icons
+                        if (event.data === YT.PlayerState.PLAYING) {
+                            els.iconPlay.classList.add('hidden');
+                            els.iconPause.classList.remove('hidden');
+                        } else if (event.data === YT.PlayerState.PAUSED) {
+                            els.iconPlay.classList.remove('hidden');
+                            els.iconPause.classList.add('hidden');
+                            
+                            // Anti-cheat restriction
+                            if (appState === 'WORK') {
+                                event.target.playVideo();
+                                showToast('You cannot pause during a Work Session.', 'warning');
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- EVENT LISTENERS ---
+        els.btnStart.addEventListener('click', () => {
+            const url = els.inputUrl.value.trim();
+            const id = extractPlaylistId(url);
+            
+            if (!id) {
+                showToast('Invalid YouTube URL. Need a playlist or video link.', 'error');
+                els.inputUrl.focus();
+                return;
+            }
+            
+            playlistId = id;
+            appState = 'WORK';
+            timeLeft = settings.workDuration;
+            els.timerDisplay.textContent = formatTime(timeLeft);
+            
+            renderTasks(); 
+            updateUIForState();
+            initYouTubePlayer();
+            
+            timerInterval = setInterval(tickTimer, 1000);
+            showToast("Session started. Focus strictly.", "success");
+        });
+
+        els.btnStop.addEventListener('click', () => {
+            if (confirm("Are you sure you want to stop? Session progress will not be saved!")) {
+                appState = 'IDLE';
+                clearInterval(timerInterval);
+                document.title = "FocusLock | Strict Pomodoro";
+                
+                if (player) {
+                    player.destroy();
+                    player = null;
+                    els.playerWrapper.innerHTML = '<div id="youtube-player"></div>';
+                }
+                
+                els.selectSpeed.value = "1";
+                currentPlaybackRate = 1;
+                currentQuality = 'default';
+                
+                els.playlistSection.style.display = 'none';
+
+                els.iconPlay.classList.add('hidden');
+                els.iconPause.classList.remove('hidden');
+
+                updateUIForState();
+            }
+        });
+
+        els.inputUrl.addEventListener('input', (e) => {
+            els.btnStart.disabled = e.target.value.trim().length === 0;
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (appState === 'WORK' || appState === 'BREAK') {
+                const blockedKeys = [' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'f', 'F', 'k', 'K', 'j', 'J', 'l', 'L'];
+                if (blockedKeys.includes(e.key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showToast(`Native key '${e.key === ' ' ? 'Space' : e.key}' is blocked. Use the UI controls.`, 'warning');
+                }
+            }
+        }, { capture: true });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (appState === 'WORK' || appState === 'BREAK') {
+                e.preventDefault();
+                e.returnValue = ''; 
+            }
+        });
+
+        updateUIForState();
+        els.btnStart.disabled = true;
+
+    </script>
+</body>
+</html>
