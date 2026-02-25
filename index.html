@@ -61,7 +61,23 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight leading-none">FocusLock</h1>
-                <span class="text-xs text-neutral-400 font-medium">Strict Pomodoro</span>
+                <div class="flex items-center gap-2 mt-1.5">
+                    <span class="text-[10px] text-neutral-400 font-medium uppercase tracking-wider hidden sm:inline">Strict Pomodoro</span>
+                    
+                    <!-- Cloud Sync Indicator & Login -->
+                    <div class="flex items-center gap-2">
+                        <span id="user-status" class="text-[10px] bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded border border-neutral-700 flex items-center gap-1 transition-colors">
+                            <span class="w-1.5 h-1.5 rounded-full bg-neutral-500 animate-pulse"></span> Connecting...
+                        </span>
+                        <button id="btn-google-login" class="hidden text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-0.5 rounded transition-colors flex items-center gap-1 font-medium shadow-sm shadow-indigo-500/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                            Sign In
+                        </button>
+                        <button id="btn-logout" class="hidden text-[10px] bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-2 py-0.5 rounded transition-colors border border-neutral-700">
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -115,7 +131,7 @@
                     <div class="bg-neutral-800/30 rounded-xl p-5 border border-neutral-800">
                         <h3 class="text-sm font-medium mb-3 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-                            Strict Rules Applied
+                            Session Rules
                         </h3>
                         <ul class="text-xs text-neutral-400 space-y-2 pl-6 list-disc">
                             <li><span id="label-work-time">50</span> minutes deep work, <span id="label-break-time">15</span> minutes break.</li>
@@ -178,8 +194,8 @@
                     <div 
                         class="absolute inset-0 z-40 bg-transparent cursor-not-allowed"
                         title="Strict Mode Active. Native controls disabled."
-                        oncontextmenu="event.preventDefault(); showToast('Context menu disabled in Strict Mode.', 'warning');"
-                        onclick="showToast('Use the Media Controls panel on the right.', 'info');"
+                        oncontextmenu="event.preventDefault(); window.showToast('Context menu disabled in Strict Mode.', 'warning');"
+                        onclick="window.showToast('Use the Media Controls panel on the right.', 'info');"
                     ></div>
 
                     <!-- BREAK OVERLAY -->
@@ -234,7 +250,7 @@
                 <div class="grid grid-cols-2 gap-3 shrink-0">
                     <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-3 shadow-xl flex flex-col gap-2">
                         <label class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1">Speed</label>
-                        <select id="select-speed" class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-2 py-1.5 text-white text-xs focus:outline-none focus:border-indigo-500" onchange="changePlaybackSpeed(this.value)">
+                        <select id="select-speed" class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-2 py-1.5 text-white text-xs focus:outline-none focus:border-indigo-500" onchange="window.changePlaybackSpeed(this.value)">
                             <option value="1" selected>Normal</option>
                             <option value="1.25">1.25x</option>
                             <option value="1.5">1.5x</option>
@@ -244,7 +260,7 @@
                     </div>
                     <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-3 shadow-xl flex flex-col gap-2">
                         <label class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1" title="Note: YouTube may override quality based on bandwidth.">Quality</label>
-                        <select id="select-quality" class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-2 py-1.5 text-white text-xs focus:outline-none focus:border-indigo-500" onchange="changeVideoQuality(this.value)">
+                        <select id="select-quality" class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-2 py-1.5 text-white text-xs focus:outline-none focus:border-indigo-500" onchange="window.changeVideoQuality(this.value)">
                             <option value="default">Auto</option>
                         </select>
                     </div>
@@ -284,7 +300,7 @@
         <div id="modal-settings-content" class="bg-neutral-900 border border-neutral-700 w-full max-w-md rounded-2xl p-6 shadow-2xl transform scale-95 transition-transform duration-300">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold">Settings</h3>
-                <button onclick="closeModal('modal-settings')" class="text-neutral-400 hover:text-white transition-colors">
+                <button onclick="window.closeModal('modal-settings')" class="text-neutral-400 hover:text-white transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -293,9 +309,9 @@
                 <div>
                     <label class="block text-sm font-medium text-neutral-300 mb-2">Pomodoro Preset</label>
                     <div class="grid grid-cols-3 gap-2">
-                        <button onclick="applyPreset(25, 5)" class="preset-btn py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm transition-colors">25 / 5</button>
-                        <button onclick="applyPreset(50, 15)" class="preset-btn py-2 bg-indigo-600 border border-indigo-500 rounded-lg text-sm transition-colors font-medium text-white shadow-lg shadow-indigo-500/20">50 / 15</button>
-                        <button onclick="applyPreset(90, 20)" class="preset-btn py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm transition-colors">90 / 20</button>
+                        <button onclick="window.applyPreset(25, 5)" class="preset-btn py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm transition-colors">25 / 5</button>
+                        <button onclick="window.applyPreset(50, 15)" class="preset-btn py-2 bg-indigo-600 border border-indigo-500 rounded-lg text-sm transition-colors font-medium text-white shadow-lg shadow-indigo-500/20">50 / 15</button>
+                        <button onclick="window.applyPreset(90, 20)" class="preset-btn py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm transition-colors">90 / 20</button>
                     </div>
                 </div>
 
@@ -311,7 +327,7 @@
                 </div>
 
                 <div class="pt-4 border-t border-neutral-800 flex justify-end">
-                    <button onclick="saveSettings()" class="bg-white text-black hover:bg-neutral-200 font-semibold px-4 py-2 rounded-lg transition-colors">
+                    <button onclick="window.saveSettings()" class="bg-white text-black hover:bg-neutral-200 font-semibold px-4 py-2 rounded-lg transition-colors">
                         Save Changes
                     </button>
                 </div>
@@ -327,7 +343,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
                     Your Analytics
                 </h3>
-                <button onclick="closeModal('modal-stats')" class="text-neutral-400 hover:text-white transition-colors">
+                <button onclick="window.closeModal('modal-stats')" class="text-neutral-400 hover:text-white transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -353,15 +369,147 @@
     <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
+    <!-- FIREBASE & JAVASCRIPT LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // 🚀 TO RUN LOCALLY WITH GOOGLE LOGIN:
+        // Paste your Firebase Config keys here!
+        // ==========================================
+        const YOUR_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyANWCfDu-iPv8x7WXdRXnGRk37BAR7KDV4",
+            authDomain: "focus-player-f0421.firebaseapp.com",
+            projectId: "focus-player-f0421",
+            storageBucket: "focus-player-f0421.firebasestorage.app",
+            messagingSenderId: "653166619717",
+            appId: "1:653166619717:web:3a238dc1e8cab0a4f3872c",
+            measurementId: "G-MJWVYBJ3PL"
+        };
+        // ==========================================
+
+        let useFirebase = false;
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        const provider = new GoogleAuthProvider();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'focuslock-app';
+
+        let finalConfig = null;
+
+        // 1. Check if we are in the integrated preview environment
+        if (typeof __firebase_config !== 'undefined') {
+            finalConfig = JSON.parse(__firebase_config);
+        } 
+        // 2. Check if the user has provided a local config
+        else if (YOUR_FIREBASE_CONFIG && YOUR_FIREBASE_CONFIG.apiKey) {
+            finalConfig = YOUR_FIREBASE_CONFIG;
+        }
+
+        const statusEl = document.getElementById('user-status');
+        const loginBtn = document.getElementById('btn-google-login');
+        const logoutBtn = document.getElementById('btn-logout');
+
+        if (finalConfig) {
+            useFirebase = true;
+            try {
+                const app = initializeApp(finalConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                const initAuth = async () => {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                };
+                initAuth();
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+
+                    if (user) {
+                        if (user.isAnonymous) {
+                            if(statusEl) {
+                                statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Anonymous Sync`;
+                                statusEl.className = "text-[10px] bg-yellow-900/20 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-700/50 flex items-center gap-1 transition-colors";
+                            }
+                            if(loginBtn) loginBtn.classList.remove('hidden');
+                            if(logoutBtn) logoutBtn.classList.add('hidden');
+                        } else {
+                            // User is logged in with Google
+                            if(statusEl) {
+                                statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ${user.displayName || user.email || 'Cloud Sync Active'}`;
+                                statusEl.className = "text-[10px] bg-green-900/20 text-green-400 px-1.5 py-0.5 rounded border border-green-700/50 flex items-center gap-1 transition-colors";
+                            }
+                            if(loginBtn) loginBtn.classList.add('hidden');
+                            if(logoutBtn) logoutBtn.classList.remove('hidden');
+                        }
+                    } else {
+                        if(statusEl) {
+                            statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Offline`;
+                            statusEl.className = "text-[10px] bg-red-900/20 text-red-400 px-1.5 py-0.5 rounded border border-red-700/50 flex items-center gap-1 transition-colors";
+                        }
+                        if(loginBtn) loginBtn.classList.remove('hidden');
+                        if(logoutBtn) logoutBtn.classList.add('hidden');
+                    }
+                });
+            } catch(e) {
+                console.error("Firebase connection error", e);
+                useFirebase = false;
+            }
+        } else {
+            // Local fallback if NO config is provided
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Local Storage`;
+            }
+            if (loginBtn) {
+                loginBtn.classList.remove('hidden'); // ALWAYS show it on localhost so user knows it's an option!
+            }
+        }
+
+        // --- AUTH EXPOSED FUNCTIONS ---
+        window.handleGoogleLogin = async () => {
+            if (!useFirebase || !auth) {
+                return window.showToast("To use Google Login locally, add your Firebase Config keys in the source code!", "warning");
+            }
+            try {
+                await signInWithPopup(auth, provider);
+                window.showToast("Successfully signed in with Google!", "success");
+            } catch (error) {
+                console.error("Login failed", error);
+                // SHOW EXACT ERROR MESSAGE TO HELP DEBUGGING
+                window.showToast(`Login failed: ${error.code || error.message}`, "error");
+            }
+        };
+
+        window.handleLogout = async () => {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                // Fall back to anonymous right after so they can still save sessions
+                await signInAnonymously(auth);
+                window.showToast("Signed out. Using anonymous sync.", "info");
+            } catch (error) {
+                console.error("Logout failed", error);
+                window.showToast("Logout failed.", "error");
+            }
+        };
+
+        document.getElementById('btn-google-login').addEventListener('click', window.handleGoogleLogin);
+        document.getElementById('btn-logout').addEventListener('click', window.handleLogout);
+
+
         // --- CONFIGURATION & STATE ---
         let settings = {
-            workDuration: 50 * 60, // Default 50 mins (seconds)
-            breakDuration: 15 * 60 // Default 15 mins (seconds)
+            workDuration: 50 * 60, 
+            breakDuration: 15 * 60 
         };
         
-        let appState = 'IDLE'; // States: IDLE, WORK, BREAK
+        let appState = 'IDLE'; 
         let timeLeft = settings.workDuration;
         let playlistId = null;
         let timerInterval = null;
@@ -370,7 +518,7 @@
         
         let currentPlaybackRate = 1; 
         let currentQuality = 'default';
-        let tasks = []; // Array of { id, text, completed }
+        let tasks = []; 
         let playlistArray = [];
 
         // --- DOM ELEMENTS ---
@@ -416,7 +564,7 @@
         window.onYouTubeIframeAPIReady = () => { isYouTubeApiReady = true; };
 
         // --- TOAST NOTIFICATION SYSTEM ---
-        function showToast(message, type = 'info') {
+        window.showToast = function(message, type = 'info') {
             const toast = document.createElement('div');
             let bgClass = 'bg-neutral-800 border-neutral-700';
             let icon = '';
@@ -466,11 +614,11 @@
                 <div class="flex items-start gap-3 p-2.5 bg-neutral-800/50 rounded-lg border border-neutral-700/50 group transition-colors hover:bg-neutral-800">
                     <input type="checkbox" 
                         ${t.completed ? 'checked' : ''} 
-                        onchange="toggleTask('${t.id}')"
+                        onchange="window.toggleTask('${t.id}')"
                         class="task-checkbox mt-1 cursor-pointer w-4 h-4 accent-indigo-500 bg-neutral-700 border-neutral-600 rounded">
                     <div class="flex-1 text-sm ${t.completed ? 'text-neutral-500 line-through' : 'text-neutral-200'} transition-all">${t.text}</div>
                     ${isInteractive ? `
-                    <button onclick="deleteTask('${t.id}')" class="text-neutral-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="window.deleteTask('${t.id}')" class="text-neutral-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                     </button>
                     ` : ''}
@@ -509,7 +657,7 @@
             currentPlaybackRate = Number(rate);
             if (player && player.setPlaybackRate) {
                 player.setPlaybackRate(currentPlaybackRate);
-                showToast(`Playback speed set to ${rate}x`, 'info');
+                window.showToast(`Playback speed set to ${rate}x`, 'info');
             }
         };
 
@@ -523,7 +671,7 @@
             currentQuality = level;
             if (player && player.setPlaybackQuality) {
                 player.setPlaybackQuality(level);
-                showToast(`Quality requested: ${qualityMap[level] || level}`, 'info');
+                window.showToast(`Quality requested: ${qualityMap[level] || level}`, 'info');
             }
         };
 
@@ -532,7 +680,6 @@
             const levels = player.getAvailableQualityLevels();
             
             if (levels && levels.length > 0) {
-                // Ensure 'auto' or 'default' is an option
                 if(!levels.includes('default') && !levels.includes('auto')) levels.unshift('auto');
 
                 els.selectQuality.innerHTML = levels.map(l => 
@@ -549,7 +696,6 @@
                 els.playlistSection.style.display = 'flex';
                 const currentIndex = player.getPlaylistIndex();
                 
-                // Get real title for the active video
                 const currentData = player.getVideoData ? player.getVideoData() : null;
                 const activeTitle = currentData && currentData.title ? currentData.title : `Video ${currentIndex + 1}`;
 
@@ -558,7 +704,7 @@
                     const displayTitle = isActive ? activeTitle : `Video ${idx + 1}`;
                     
                     return `
-                        <button onclick="playPlaylistItem(${idx})" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition-colors flex items-center gap-2 group ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'}">
+                        <button onclick="window.playPlaylistItem(${idx})" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition-colors flex items-center gap-2 group ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'}">
                             ${isActive 
                                 ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><polygon points="5 3 19 12 5 21 5 3"/></svg>' 
                                 : `<span class="text-neutral-600 group-hover:text-neutral-400 w-3 shrink-0 text-right">${idx+1}.</span>`}
@@ -567,7 +713,6 @@
                     `;
                 }).join('');
                 
-                // Auto-scroll to active item
                 const activeEl = els.playlistContainer.children[currentIndex];
                 if (activeEl) {
                     activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -585,7 +730,7 @@
         };
 
         els.btnRewind.addEventListener('click', () => {
-            if (appState === 'BREAK') return showToast("Video is paused during break time.", "warning");
+            if (appState === 'BREAK') return window.showToast("Video is paused during break time.", "warning");
             if (player && player.getCurrentTime) {
                 const currentTime = player.getCurrentTime();
                 player.seekTo(Math.max(0, currentTime - 5), true);
@@ -593,7 +738,7 @@
         });
 
         els.btnForward.addEventListener('click', () => {
-            if (appState === 'BREAK') return showToast("Video is paused during break time.", "warning");
+            if (appState === 'BREAK') return window.showToast("Video is paused during break time.", "warning");
             if (player && player.getCurrentTime && player.getDuration) {
                 const currentTime = player.getCurrentTime();
                 const duration = player.getDuration();
@@ -602,7 +747,7 @@
         });
 
         els.btnPlayPause.addEventListener('click', () => {
-            if (appState === 'BREAK') return showToast("Video is paused during break time.", "warning");
+            if (appState === 'BREAK') return window.showToast("Video is paused during break time.", "warning");
             if (player && player.getPlayerState) {
                 const state = player.getPlayerState();
                 if (state === YT.PlayerState.PLAYING) {
@@ -624,7 +769,7 @@
                 content.classList.add('scale-100');
             }, 10);
 
-            if (id === 'modal-stats') updateStatsUI();
+            if (id === 'modal-stats') window.updateStatsUI();
         };
 
         window.closeModal = (id) => {
@@ -636,8 +781,8 @@
             setTimeout(() => { modal.style.display = 'none'; }, 300); 
         };
 
-        els.btnSettings.addEventListener('click', () => openModal('modal-settings'));
-        els.btnStats.addEventListener('click', () => openModal('modal-stats'));
+        els.btnSettings.addEventListener('click', () => window.openModal('modal-settings'));
+        els.btnStats.addEventListener('click', () => window.openModal('modal-stats'));
 
         window.applyPreset = (workMin, breakMin) => {
             document.getElementById('input-work-min').value = workMin;
@@ -652,7 +797,7 @@
             const w = parseInt(document.getElementById('input-work-min').value);
             const b = parseInt(document.getElementById('input-break-min').value);
             
-            if (w < 1 || b < 1) return showToast("Durations must be at least 1 minute.", "error");
+            if (w < 1 || b < 1) return window.showToast("Durations must be at least 1 minute.", "error");
 
             settings.workDuration = w * 60;
             settings.breakDuration = b * 60;
@@ -662,39 +807,74 @@
 
             if (appState === 'IDLE') timeLeft = settings.workDuration;
 
-            closeModal('modal-settings');
-            showToast("Settings saved successfully.", "success");
+            window.closeModal('modal-settings');
+            window.showToast("Settings saved successfully.", "success");
         };
 
-        // --- DATABASE & STATISTICS (LocalStorage) ---
-        function saveSessionToDatabase() {
-            const session = {
-                id: 'sess_' + generateId(),
+        // --- DATABASE & STATISTICS ---
+        async function saveSessionToDatabase() {
+            const sessionData = {
                 playlistId: playlistId,
                 workDuration: settings.workDuration,
                 completedAt: new Date().toISOString(),
-                tasksCompleted: tasks.filter(t => t.completed).length
+                tasksCompleted: tasks.filter(t => t.completed).length,
+                timestamp: Date.now()
             };
-            
+
+            if (useFirebase && currentUser) {
+                try {
+                    const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sessions');
+                    await addDoc(colRef, sessionData);
+                    console.log("Session saved securely to Cloud.");
+                } catch (e) {
+                    console.error("Cloud save failed, falling back to local storage.", e);
+                    saveToLocal(sessionData);
+                }
+            } else {
+                saveToLocal(sessionData);
+            }
+        }
+
+        function saveToLocal(sessionData) {
+            sessionData.id = 'sess_' + generateId();
             let history = JSON.parse(localStorage.getItem('focuslock_sessions') || '[]');
-            history.push(session);
+            history.push(sessionData);
             localStorage.setItem('focuslock_sessions', JSON.stringify(history));
         }
 
-        function updateStatsUI() {
-            const history = JSON.parse(localStorage.getItem('focuslock_sessions') || '[]');
+        window.updateStatsUI = async () => {
+            let history = [];
+            const historyList = document.getElementById('stats-history-list');
+            historyList.innerHTML = `<p class="text-sm text-neutral-500 text-center py-4 animate-pulse">Loading secure data...</p>`;
+
+            if (useFirebase && currentUser && !currentUser.isAnonymous) {
+                try {
+                    const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sessions');
+                    const snap = await getDocs(colRef);
+                    snap.forEach(doc => {
+                        history.push({ id: doc.id, ...doc.data() });
+                    });
+                } catch (e) {
+                    console.error("Firestore read error, using local data", e);
+                    history = JSON.parse(localStorage.getItem('focuslock_sessions') || '[]');
+                }
+            } else {
+                history = JSON.parse(localStorage.getItem('focuslock_sessions') || '[]');
+            }
+
+            // Sort newest first
+            history.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+
             document.getElementById('stat-total-sessions').textContent = history.length;
-            
             const totalSeconds = history.reduce((acc, curr) => acc + curr.workDuration, 0);
             document.getElementById('stat-total-hours').textContent = (totalSeconds / 3600).toFixed(1);
 
-            const historyList = document.getElementById('stats-history-list');
             if (history.length === 0) {
                 historyList.innerHTML = `<p class="text-sm text-neutral-500 text-center py-4">No sessions recorded yet. Start working!</p>`;
                 return;
             }
 
-            const recent = [...history].reverse().slice(0, 10);
+            const recent = history.slice(0, 10);
             historyList.innerHTML = recent.map(session => {
                 const date = new Date(session.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                 const mins = Math.floor(session.workDuration / 60);
@@ -709,7 +889,7 @@
                                 <p class="text-xs text-neutral-500">${date}</p>
                             </div>
                         </div>
-                        <div class="text-xs font-medium text-neutral-400 bg-neutral-800 px-2 py-1 rounded">
+                        <div class="text-xs font-medium text-neutral-400 bg-neutral-800 px-2 py-1 rounded border border-neutral-700">
                             ${session.tasksCompleted} tasks done
                         </div>
                     </div>
@@ -770,14 +950,14 @@
                 
                 if (player && player.pauseVideo) player.pauseVideo();
                 saveSessionToDatabase();
-                showToast("Work session complete! Time for a break.", "success");
+                window.showToast("Work session complete! Time for a break.", "success");
                 
             } else if (appState === 'BREAK') {
                 appState = 'WORK';
                 timeLeft = settings.workDuration;
                 
                 if (player && player.playVideo) player.playVideo();
-                showToast("Break is over. Back to work!", "info");
+                window.showToast("Break is over. Back to work!", "info");
             }
             
             els.timerDisplay.textContent = formatTime(timeLeft);
@@ -832,7 +1012,6 @@
                         }, 1000);
                     },
                     onStateChange: (event) => {
-                        // Maintain speed and quality settings
                         if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.CUED) {
                             event.target.setPlaybackRate(currentPlaybackRate);
                             if (currentQuality !== 'default') event.target.setPlaybackQuality(currentQuality);
@@ -841,19 +1020,12 @@
                             updateQualityOptions();
                         }
 
-                        // Toggle UI icons
                         if (event.data === YT.PlayerState.PLAYING) {
                             els.iconPlay.classList.add('hidden');
                             els.iconPause.classList.remove('hidden');
                         } else if (event.data === YT.PlayerState.PAUSED) {
                             els.iconPlay.classList.remove('hidden');
                             els.iconPause.classList.add('hidden');
-                            
-                            // Anti-cheat restriction
-                            if (appState === 'WORK') {
-                                event.target.playVideo();
-                                showToast('You cannot pause during a Work Session.', 'warning');
-                            }
                         }
                     }
                 }
@@ -866,7 +1038,7 @@
             const id = extractPlaylistId(url);
             
             if (!id) {
-                showToast('Invalid YouTube URL. Need a playlist or video link.', 'error');
+                window.showToast('Invalid YouTube URL. Need a playlist or video link.', 'error');
                 els.inputUrl.focus();
                 return;
             }
@@ -881,7 +1053,7 @@
             initYouTubePlayer();
             
             timerInterval = setInterval(tickTimer, 1000);
-            showToast("Session started. Focus strictly.", "success");
+            window.showToast("Session started. Focus strictly.", "success");
         });
 
         els.btnStop.addEventListener('click', () => {
@@ -919,7 +1091,7 @@
                 if (blockedKeys.includes(e.key)) {
                     e.preventDefault();
                     e.stopPropagation();
-                    showToast(`Native key '${e.key === ' ' ? 'Space' : e.key}' is blocked. Use the UI controls.`, 'warning');
+                    window.showToast(`Native key '${e.key === ' ' ? 'Space' : e.key}' is blocked. Use the UI controls.`, 'warning');
                 }
             }
         }, { capture: true });
