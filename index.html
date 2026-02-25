@@ -243,6 +243,9 @@
                         <button id="btn-forward" class="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-full text-white transition-colors" title="Forward 5 seconds">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg>
                         </button>
+                        <button id="btn-cc" class="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-full text-white transition-colors" title="Toggle Captions">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="2" ry="2"></rect><path d="M10 10.5a1.5 1.5 0 0 0-1.5-1.5h-1a1.5 1.5 0 0 0-1.5 1.5v3a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5"></path><path d="M17.5 10.5a1.5 1.5 0 0 0-1.5-1.5h-1a1.5 1.5 0 0 0-1.5 1.5v3a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5"></path></svg>
+                        </button>
                     </div>
                 </div>
 
@@ -518,6 +521,7 @@
         
         let currentPlaybackRate = 1; 
         let currentQuality = 'default';
+        let ccEnabled = false;
         let tasks = []; 
         let playlistArray = [];
 
@@ -554,6 +558,7 @@
             btnPlayPause: document.getElementById('btn-play-pause'),
             iconPlay: document.getElementById('icon-play'),
             iconPause: document.getElementById('icon-pause'),
+            btnCc: document.getElementById('btn-cc'),
         };
 
         // --- INIT YOUTUBE API ---
@@ -755,6 +760,36 @@
                 } else {
                     player.playVideo();
                 }
+            }
+        });
+
+        els.btnCc.addEventListener('click', () => {
+            if (appState === 'BREAK') return window.showToast("Video is paused during break time.", "warning");
+            if (!player || typeof player.getOption !== 'function') return;
+
+            ccEnabled = !ccEnabled;
+            try {
+                player.loadModule('captions');
+                if (ccEnabled) {
+                    const tracks = player.getOption('captions', 'tracklist') || [];
+                    if (tracks.length > 0) {
+                        player.setOption('captions', 'track', tracks[0]); // Pick first available track
+                        window.showToast("Captions enabled.", "info");
+                        els.btnCc.classList.remove('bg-neutral-800', 'hover:bg-neutral-700');
+                        els.btnCc.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                    } else {
+                        window.showToast("No captions available for this video.", "warning");
+                        ccEnabled = false; // Revert state
+                    }
+                } else {
+                    player.setOption('captions', 'track', {}); // Disable captions
+                    window.showToast("Captions disabled.", "info");
+                    els.btnCc.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                    els.btnCc.classList.add('bg-neutral-800', 'hover:bg-neutral-700');
+                }
+            } catch (e) {
+                console.error("CC toggle error:", e);
+                window.showToast("Failed to toggle captions.", "error");
             }
         });
 
@@ -1071,6 +1106,12 @@
                 els.selectSpeed.value = "1";
                 currentPlaybackRate = 1;
                 currentQuality = 'default';
+                
+                ccEnabled = false;
+                if (els.btnCc) {
+                    els.btnCc.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                    els.btnCc.classList.add('bg-neutral-800', 'hover:bg-neutral-700');
+                }
                 
                 els.playlistSection.style.display = 'none';
 
